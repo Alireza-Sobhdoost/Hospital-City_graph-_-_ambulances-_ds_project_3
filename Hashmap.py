@@ -54,7 +54,7 @@ class HashedLinkedList:
         """Display all nodes in the linked list."""
         current = self.head
         while current:
-            print(f"({current.data.key}, {current.data.value})", end=" -> ")
+            print(f"[{current.data.key}] {current.data.value}")
             current = current.next
         print("None")
 

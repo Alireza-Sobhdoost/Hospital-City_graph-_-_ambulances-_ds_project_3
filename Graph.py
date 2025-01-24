@@ -60,83 +60,116 @@ class Graph:
     def heuristic(self, current_id, goal_id):
         return 0 if current_id == goal_id else 1
 
+
+
     def a_star_search(self, start_id, goal_id):
-        # Min-Heap for the open set
+        # Initialize the open and closed sets
         open_set = MinHeap()
-        open_set.insert((0, start_id))  # (f_score, node_id)
-
-        # Dictionaries to store scores and paths
-        g_scores = {start_id: 0}  # Cost from start to each node
-        f_scores = {start_id: self.heuristic(start_id, goal_id)}  # Estimated total cost
-        came_from = {}  # To reconstruct the path
-
-        while open_set.root:  # While there are nodes to explore
-            # Get node with the lowest f_score
-            _, current = open_set.extract_min()
-
-            # If we reached the goal
-            if current == goal_id:
-                # Reconstruct the path
+        open_set.insert((0, start_id))
+        closed_set = set()
+        
+        # Path tracking
+        came_from = {}
+        g_score = {start_id: 0}
+        
+        while open_set.root:
+            current_f_score, current_id = open_set.extract_min()
+            
+            # Skip if we've already processed this node
+            if current_id in closed_set:
+                continue
+                
+            # Add to closed set
+            closed_set.add(current_id)
+            
+            # Check if we reached the goal
+            if current_id == goal_id:
                 path = []
-                while current in came_from:
-                    path.append(current)
-                    current = came_from[current]
+                while current_id in came_from:
+                    path.append(current_id)
+                    current_id = came_from[current_id]
                 path.append(start_id)
-                path.reverse()
-                return path
-
-            # Find the current vertex in the graph
-            current_vertex = self.vertices.find(lambda v: v.id == current)
-            if current_vertex:
-                current_edges = current_vertex.edges
-                current_node = current_edges.head
-
-                while current_node:  # Traverse neighbors
-                    neighbor_id, weight = current_node.data
-                    tentative_g_score = g_scores[current] + weight
-
-                    # If this path to the neighbor is better, record it
-                    if neighbor_id not in g_scores or tentative_g_score < g_scores[neighbor_id]:
-                        came_from[neighbor_id] = current  # Record path
-                        g_scores[neighbor_id] = tentative_g_score
-                        f_scores[neighbor_id] = tentative_g_score + self.heuristic(neighbor_id, goal_id)
-
-                        # Add neighbor to the open set
-                        open_set.insert((f_scores[neighbor_id], neighbor_id))
-
-                    current_node = current_node.next  # Move to the next neighbor
-
-        # If we exhaust the open set without finding the goal
+                return path[::-1]
+            
+            # Get current vertex
+            current_vertex = self.vertices.find(lambda v: v.id == current_id)
+            if not current_vertex:
+                continue
+                
+            # Check all neighbors
+            edges = current_vertex.edges
+            current_edge = edges.head
+            while current_edge:
+                neighbor_id, weight = current_edge.data
+                
+                # Skip if in closed set
+                if neighbor_id in closed_set:
+                    current_edge = current_edge.next
+                    continue
+                
+                # Calculate tentative g score
+                tentative_g = g_score[current_id] + weight
+                
+                if neighbor_id not in g_score or tentative_g < g_score[neighbor_id]:
+                    came_from[neighbor_id] = current_id
+                    g_score[neighbor_id] = tentative_g
+                    f_score = tentative_g + self.heuristic(neighbor_id, goal_id)
+                    open_set.insert((f_score, neighbor_id))
+                
+                current_edge = current_edge.next
+        
         return None
 
     def calculate_path_cost(self, path):
         if not path or len(path) < 2:
-            return float('inf')
+            return 0
         
-        total_cost = 0
+        cost = 0
         for i in range(len(path) - 1):
             current = self.vertices.find(lambda v: v.id == path[i])
             if current:
                 edge = current.edges.find(lambda e: e[0] == path[i + 1])
                 if edge:
-                    total_cost += edge[1]
-                else:
-                    return float('inf')
-        return total_cost
+                    cost += edge[1]
+        return cost
 
-# graph = Graph()
-# graph.add_vertex("A1", "A1")
-# graph.add_vertex("M1", "M1")
-# graph.add_vertex("H1", "Ghaem")
 
-# graph.add_edge("A1", "M1", 4)
-# graph.add_edge("A1", "H1", 3)
-# graph.add_edge("H1", "A1", 2)
-# graph.add_edge("M1", "A1", 3)
 
-# # Run A* Search
-# path = graph.a_star_search("H1", "M1")
-# if path:
-#     print(f"Path found: {' -> '.join(path)}")
-# else:
-#     print("No path found")
+# H1 (s): ('A1', 2) -> None
+# H2 (g): ('A2', 4) -> None
+# A1 (A1): ('H1', 2) -> ('A2', 4) -> ('M1', 5) -> ('M2', 1) -> None
+# A2 (A2): ('A1', 2) -> ('H2', 3) -> None
+# M1 (M1): ('A1', 2) -> None
+# M2 (M2): ('A1', 3) -> None
+graph = Graph()
+
+# Add vertices
+graph.add_vertex("H1", "s")
+graph.add_vertex("H2", "g")
+graph.add_vertex("A1", "A1")
+graph.add_vertex("A2", "A2")
+graph.add_vertex("M1", "M1")
+graph.add_vertex("M2", "M2")
+
+# Add edges
+graph.add_edge("H1", "A1", 2)
+graph.add_edge("H2", "A2", 4)
+graph.add_edge("A1", "H1", 2)
+graph.add_edge("A1", "A2", 4)
+graph.add_edge("A1", "M1", 5)
+graph.add_edge("A1", "M2", 1)
+graph.add_edge("A2", "A1", 2)
+graph.add_edge("A2", "H2", 3)
+graph.add_edge("M1", "A1", 2)
+graph.add_edge("M2", "A1", 3)
+
+# Display the graph
+graph.display()
+
+# Test A* search from H1 to H2
+path = graph.a_star_search("H2", "M1")
+if path:
+    print(f"Path found: {' -> '.join(path)}")
+    print(f"Path cost: {graph.calculate_path_cost(path)}")
+else:
+    print("No path found")

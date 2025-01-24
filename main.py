@@ -1,8 +1,30 @@
 from Entities import *
 from os import system
-from MinHeap import MinHeap
+from PriorityQueue import PriorityQueue
 
 Rasht = City()
+
+
+def Add_Pearson(Rasht):
+        F_name = input("Enter first name: ")
+        L_name = input("Enter last name: ")
+        NID = input("Enter NID: ")
+        password = input("Enter password: ")
+        house_id = input("Enter house ID: ")
+        house_location = input("Enter house location: ")
+        Rasht.add_people(F_name, L_name, NID, password, house_id, house_location)
+        Rasht.add_house(house_id, house_location)
+        connected_nodes_entered = input("Enter IDs of nodes connected to this house (comma-separated): ").split(',')
+        if connected_nodes_entered != ['']:
+            for node in connected_nodes_entered:
+                node_id, weight = node.split(':')
+                Rasht.add_edge("M"+house_id, node_id.strip(), int(weight))
+        connected_nodes_exited = input("Enter IDs of nodes connected to this house (comma-separated): ").split(',')
+        if connected_nodes_exited != ['']:
+            for node in connected_nodes_exited:
+                node_id, weight = node.split(':')
+                Rasht.add_edge(node_id.strip(),"M"+house_id, int(weight))
+        return NID, "M" +house_id
 
 while True:
     choice = Rasht.city_menu()
@@ -125,14 +147,29 @@ while True:
                 print("Login failed.")
         else:
             print("Hospital not found.")
-    elif choice == "10":
-        house_id = input("Enter house ID to find nearest hospital: ")
+    elif choice == "10" or choice == "11":
+
+        if choice == "10":
+            NID = input("Enter NID: ")
+            password = input("Enter password: ")
+            citizen = Rasht.finde_citizen_by_NID(NID)
+            if citizen:
+                if citizen.chek_password(password):
+                    print("Login successful.")
+                    house_id = citizen.location.house_id
+                else:
+                    print("Login failed.")
+                    continue
+                
+        else :
+            NID, house_id= Add_Pearson(Rasht)
+
         choose = Rasht.show_hospital()
         if choose != "0":
             hospital_id = Rasht.city_hospitals.get_by_index(int(choose) - 1)
             if hospital_id or house_id:
                 Rasht.city_ambulances.display()
-                Priority_Q = MinHeap()
+                Priority_Q = PriorityQueue()
                 current = Rasht.city_ambulances.head
                 
                 # Store all ambulances with their costs in Priority_Q
@@ -150,18 +187,21 @@ while True:
                     current = current.next
 
                 # Get the minimum cost path from Priority_Q
-                if Priority_Q.root:
+                if not Priority_Q.is_empty():
                     min_cost, best_hospital, ambulance, best_path = Priority_Q.extract_min()
                     print("\nBest hospital found:")
                     print(f"Hospital: {best_hospital}")
                     print(f"Path: {' -> '.join(best_path)}")
                     print(f"Total cost: {min_cost}")
-                    report = Report(best_hospital.hospital_id, ambulance.Ambulance_id, ambulance.Ambulance_location, house_id, house_location, min_cost)
+                    report = Report(best_hospital.hospital_id, ambulance.Ambulance_id, ambulance.Ambulance_location, NID, house_id, min_cost)
                     Rasht.city_reports.put(Report.count, report)
                 else:
                     print("No accessible ambulance found.")
 
     elif choice == "12":
+        Rasht.city_reports.display()
+
+    elif choice == "13":
         break
     else:
         print("Invalid choice. Please try again.")

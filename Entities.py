@@ -70,14 +70,14 @@ class City:
         print("9. Hospital Manger Login")
         print("10. People Login")
         print("11. Call for an Ambulance")
-        print("12. Exit")
+        print("12. Show Reports")
+        print("13. Exit")
         choice = input("Enter your choice: ")
         return choice
     
     def hospital_menu(self):
         print("1. Add Ambulance")
-        print("2. See Emergency calls")
-        print("3. Exit")
+        print("2. Exit")
         choice = input("Enter your choice: ")
         return choice
     
@@ -212,4 +212,4 @@ class Report:
         Report.count += 1
 
     def __str__(self):
-        return f"{self.patient_id} to {self.hospital_id} by {self.ambulance_id} at {self.travel_time} with cost {self.travel_cost}"
+        return f"{self.patient_id} to {self.hospital_id} by {self.ambulance_id} at {self.travel_time} with cost {self.travel_cost} from {self.Ambulance_location} to {self.patient_location}"
