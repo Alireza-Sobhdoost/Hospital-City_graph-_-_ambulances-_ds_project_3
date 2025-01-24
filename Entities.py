@@ -1,6 +1,8 @@
 from Hash import Hash
 from LinkedList import LinkedList
 from Graph import Graph
+from Hashmap import HashMap
+from datetime import datetime
 
 Hash_agent = Hash()
 
@@ -8,14 +10,26 @@ class City:
     def __init__(self):
         self.city_graph = Graph()
         self.city_emergency_graph = Graph()
+        self.city_citizens = LinkedList()
         self.city_houses = LinkedList()
         self.city_hospitals = LinkedList()
         self.city_accesspoints = LinkedList()
+        self.city_ambulances = LinkedList()
+        self.city_reports = HashMap()
 
     def find_house_by_house_id(self, house_id):
         current = self.city_houses.head
         while current:
             if current.data.house_id == house_id:
+                return current.data
+            current = current.next
+        return None
+    
+        
+    def finde_citizen_by_NID(self, NID):
+        current = self.city_citizens.head
+        while current:
+            if current.data.NID == NID:
                 return current.data
             current = current.next
         return None
@@ -53,10 +67,32 @@ class City:
         print("6. Add People")
         print("7. Display city map")
         print("8. Delete a Node from the city map")
-        print("9. Exit")
+        print("9. Hospital Manger Login")
+        print("10. People Login")
+        print("11. Call for an Ambulance")
+        print("12. Exit")
         choice = input("Enter your choice: ")
         return choice
     
+    def hospital_menu(self):
+        print("1. Add Ambulance")
+        print("2. See Emergency calls")
+        print("3. Exit")
+        choice = input("Enter your choice: ")
+        return choice
+    
+    def show_hospital(self):
+        curent = self.city_hospitals.head
+        count = 1
+        while curent:
+            print(f"{count}. {curent.data}")
+            count += 1
+            curent = curent.next
+        print("0. Exit")
+        choice = input("Enter your choice: ")
+        return choice
+    
+
     def add_house(self, house_id, house_location):
         new_house = House(house_id, house_location)
         self.city_houses.append(new_house)
@@ -66,17 +102,19 @@ class City:
         new_manager = HospitalManager(F_name, L_name, NID, password, hospital_name, hospital_id)
         new_hospital = Hospital(hospital_name, hospital_id, new_manager)
         self.city_hospitals.append(new_hospital)
-        self.city_graph.add_vertex(hospital_id, new_hospital)
+        self.city_graph.add_vertex(new_hospital.hospital_id, new_hospital)
 
     def add_people(self, F_name, L_name, NID, password, house_id , house_location):
         new_person = People(F_name, L_name, NID, password, house_id , house_location)
         self.city_houses.append(new_person.location)
+        self.city_graph.add_vertex(new_person.location.house_id, new_person.location)
+
 
 
     def add_accesspoint(self, accesspoint_id, accesspoint_location):
         new_accesspoint = AccessPoint(accesspoint_id, accesspoint_location)
         self.city_accesspoints.append(new_accesspoint)
-        self.city_graph.add_vertex(accesspoint_id, new_accesspoint)
+        self.city_graph.add_vertex(new_accesspoint.accesspoint_id, new_accesspoint)
 
     def add_edge(self, vertex1_id, vertex2_id, weight):
         self.city_graph.add_edge(vertex1_id, vertex2_id, weight)
@@ -117,12 +155,15 @@ class People():
     def get_password(self):
         return self.__password
     
+    def chek_password(self, password):
+        return self.__password == Hash_agent.update(password)
+    
     def __str__(self):
         return f"{self.NID}"
 
 class HospitalManager(People):
     def __init__(self, F_name, L_name, NID, password, hospital_name, hospital_id):
-        super().__init__(F_name, L_name, NID, password , hospital_id)
+        super().__init__(F_name, L_name, NID, password , hospital_id , None)
         self.hospital_name = hospital_name
         self.hospital_id = "H"+ hospital_id
 
@@ -146,6 +187,8 @@ class Hospital:
         self.Manager = Manager
         self.Ambulance = LinkedList()
 
+    def __str__(self):
+        return f"{self.hospital_name}"
 class AccessPoint:
     def __init__(self, accesspoint_id, accesspoint_location):
         self.accesspoint_id = "A"+ accesspoint_id
@@ -153,4 +196,20 @@ class AccessPoint:
 
     def __str__(self):
         return f"{self.accesspoint_id}"
+    
 
+
+class Report:
+    count = 0
+    def __init__(self, hospital_id, ambulance_id, ambulance_Ambulance_location, patient_id, patient_location, travel_cost):
+        self.hospital_id = hospital_id
+        self.ambulance_id = ambulance_id
+        self.Ambulance_location = ambulance_Ambulance_location
+        self.patient_id = patient_id
+        self.patient_location = patient_location
+        self.travel_time = datetime.now() 
+        self.travel_cost = travel_cost
+        Report.count += 1
+
+    def __str__(self):
+        return f"{self.patient_id} to {self.hospital_id} by {self.ambulance_id} at {self.travel_time} with cost {self.travel_cost}"

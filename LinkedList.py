@@ -38,7 +38,25 @@ class LinkedList:
             prev = current
             current = current.next
         return None
+    
+    def __len__ (self):
+        current = self.head
+        count = 0
+        while current != None :
+            count += 1
+            current = current.next
+        return count
 
+    def get_by_index(self, index):
+        current = self.head
+        count = 0
+        while current:
+            if count == index:
+                return current.data
+            count += 1
+            current = current.next
+        return None
+    
     def display(self):
         current = self.head
         while current:
