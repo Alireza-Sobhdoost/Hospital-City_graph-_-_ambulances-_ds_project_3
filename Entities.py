@@ -106,6 +106,9 @@ class City:
 
     def add_people(self, F_name, L_name, NID, password, house_id , house_location):
         new_person = People(F_name, L_name, NID, password, house_id , house_location)
+        new_house = House(house_id, house_location)
+        new_house.owner = new_person.NID
+        self.city_citizens.append(new_person)
         self.city_houses.append(new_person.location)
         self.city_graph.add_vertex(new_person.location.house_id, new_person.location)
 

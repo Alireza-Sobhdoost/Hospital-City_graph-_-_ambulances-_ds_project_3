@@ -105,7 +105,7 @@ while True:
         house_id = input("Enter house ID: ")
         house_location = input("Enter house location: ")
         Rasht.add_people(F_name, L_name, NID, password, house_id, house_location)
-        Rasht.add_house(house_id, house_location)
+        # Rasht.add_house(house_id, house_location)
         connected_nodes_entered = input("Enter IDs of nodes connected to this house (comma-separated): ").split(',')
         if connected_nodes_entered != ['']:
             for node in connected_nodes_entered:
@@ -125,6 +125,20 @@ while True:
             house = Rasht.find_house_by_house_id(node_id)
             citizen = Rasht.finde_citizen_by_NID(house.owner)
             citizen.location = None
+        if "H" in node_id:
+            hospital = Rasht.find_hospital(node_id)
+            current = Rasht.city_ambulances.head
+            while current:
+                if current.data.Hospital_id == hospital.hospital_id:
+                    Rasht.city_ambulances.delete(lambda a: a.Ambulance_id == current.data.Ambulance_id)
+                current = current.next
+        if "A" in node_id:
+            accesspoint = Rasht.find_accesspoint(node_id)
+            current = Rasht.city_ambulances.head
+            while current:
+                if current.data.Ambulance_location == accesspoint.accesspoint_location:
+                    current.data.Ambulance_location = current.data.Hospital_id
+                current = current.next
         Rasht.delete_node(node_id)
     elif choice == "9":
         hospital_id = input("Enter hospital ID: ")
@@ -157,6 +171,7 @@ while True:
                 if citizen.chek_password(password):
                     print("Login successful.")
                     house_id = citizen.location.house_id
+                    print(f"House ID: {house_id}")
                 else:
                     print("Login failed.")
                     continue
